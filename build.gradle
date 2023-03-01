@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+group 'org.vrymar'
+version '2.0'
+
+repositories {
+    mavenCentral()
+}
+
+def lombokVersion = "1.18.22"
+def httpcomponentsVersion = "4.5.13"
+def jacksonVersion = "2.13.2"
+
+dependencies {
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: httpcomponentsVersion
+    implementation group: 'org.apache.httpcomponents', name: 'httpmime', version: httpcomponentsVersion
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes 'Class-Path': configurations.runtimeClasspath.files.collect { it.getName() }.join(' ')
+        attributes 'Main-Class': 'com.epam.Main'
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
