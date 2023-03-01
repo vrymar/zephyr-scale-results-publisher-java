@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'org.vrymar'
-version '1.0.0'
+version 'v1.0.0'
 
 repositories {
     mavenCentral()
