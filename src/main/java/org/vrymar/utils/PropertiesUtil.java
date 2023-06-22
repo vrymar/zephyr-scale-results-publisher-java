@@ -43,6 +43,10 @@ public class PropertiesUtil {
     @Getter
     private final String maxResults;
     @Getter
+    private final boolean updateTestCasesWithLabels;
+    @Getter
+    private final boolean updateTestCasesWithStories;
+    @Getter
     private String jiraBaseUri;
     @Getter
     private String jiraToken;
@@ -71,6 +75,8 @@ public class PropertiesUtil {
         customFields = readProperties("customFields");
         folderType = readProperties("folderType");
         maxResults = readProperties("maxResults");
+        updateTestCasesWithLabels = Boolean.parseBoolean(readProperties("updateTestCasesWithLabels"));
+        updateTestCasesWithStories = Boolean.parseBoolean(readProperties("updateTestCasesWithStories"));
         jiraBaseUri = readProperties("jiraBaseUri");
         if (jiraBaseUri == null) {
             jiraBaseUri = readProperties("jiraBaseUri");

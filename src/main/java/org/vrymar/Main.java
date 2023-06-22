@@ -17,8 +17,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
 
@@ -44,6 +44,9 @@ public class Main {
 
             String resultsFileExtension = propertiesUtil.getResultsFileExtension();
             String resultsFolder = propertiesUtil.getResultsFolder();
+            boolean isUpdateTestCasesWithLabels = propertiesUtil.isUpdateTestCasesWithLabels();
+            boolean isUpdateTestCasesWithStories = propertiesUtil.isUpdateTestCasesWithStories();
+
             File file = fileUtil.findFile(resultsFolder);
             File resultsFile = new File(file.getAbsolutePath() + "/testResults.zip");
             fileUtil.deleteExistingFile(resultsFile);
@@ -79,42 +82,44 @@ public class Main {
             });
 
             // Update Test Cases with Labels
-            HashMap<String, List<String>> scenarioNameTagsLabels = fileUtil.getTestScenarioNameAndTagsFromResultsFile(propertiesUtil, "@ZephyrLabel");
-            if (!scenarioNameTagsLabels.isEmpty()) {
-                scenarioNameTagsLabels.forEach((name, tagsLabels) -> testCases.forEach(testCase -> {
-                    if (name.equals(testCase.getName())) {
-                        System.out.println("SCENARIO NAME CONTAINS: " + name);
-                        TestCase newTestCase = testCasesClient.buildTestCaseBodyWithLabels(testCase, tagsLabels);
-                        try {
-                            testCasesClient.updateTestCase(propertiesUtil, testCase.getKey(), newTestCase);
-                        } catch (URISyntaxException | IOException e) {
-                            throw new RuntimeException(e);
+            if (isUpdateTestCasesWithLabels) {
+                Map<String, List<String>> scenarioNameTagsLabels = fileUtil.getTestScenarioNameAndTagsFromResultsFile(propertiesUtil, "@ZephyrLabel");
+                if (!scenarioNameTagsLabels.isEmpty()) {
+                    scenarioNameTagsLabels.forEach((name, tagsLabels) -> testCases.forEach(testCase -> {
+                        if (name.equals(testCase.getName())) {
+                            TestCase newTestCase = testCasesClient.buildTestCaseBodyWithLabels(testCase, tagsLabels);
+                            try {
+                                testCasesClient.updateTestCase(propertiesUtil, testCase.getKey(), newTestCase);
+                            } catch (URISyntaxException | IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
-                    }
-                }));
-            } else {
-                System.out.println("Zephyr publisher: No tags found to add to Zephyr Scale test cases labels.");
+                    }));
+                } else {
+                    System.out.println("Zephyr publisher: No tags found to add to Zephyr Scale test cases labels.");
+                }
             }
 
             // Update Test Cases with Issues/Stories
-            HashMap<String, List<String>> testScenarioNameTagsIssues = fileUtil.getTestScenarioNameAndTagsFromResultsFile(propertiesUtil, "@ZephyrIssue");
-            if (!scenarioNameTagsLabels.isEmpty()) {
-                testScenarioNameTagsIssues.forEach((name, tagsIssues) -> testCases.forEach(testCase -> {
-                    if (name.equals(testCase.getName())) {
-                        List<JiraIssue> jiraIssues;
-                        try {
-                            jiraIssues = jiraIssuesClient.getJiraIssue(propertiesUtil, tagsIssues);
-                            List<Integer> issuesIds = jiraIssuesClient.getIssuesIds(jiraIssues);
-                            testCasesClient.createIssueLink(propertiesUtil, testCase.getKey(), issuesIds);
-                        } catch (URISyntaxException | IOException e) {
-                            throw new RuntimeException(e);
+            if (isUpdateTestCasesWithStories) {
+                Map<String, List<String>> testScenarioNameTagsIssues = fileUtil.getTestScenarioNameAndTagsFromResultsFile(propertiesUtil, "@ZephyrIssue");
+                if (!testScenarioNameTagsIssues.isEmpty()) {
+                    testScenarioNameTagsIssues.forEach((name, tagsIssues) -> testCases.forEach(testCase -> {
+                        if (name.equals(testCase.getName())) {
+                            List<JiraIssue> jiraIssues;
+                            try {
+                                jiraIssues = jiraIssuesClient.getJiraIssue(propertiesUtil, tagsIssues);
+                                List<Integer> issuesIds = jiraIssuesClient.getIssuesIds(jiraIssues);
+                                testCasesClient.createIssueLink(propertiesUtil, testCase.getKey(), issuesIds);
+                            } catch (URISyntaxException | IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
-                    }
-                }));
-            } else {
-                System.out.println("Zephyr publisher: No tags found to add to Zephyr Scale test cases issues/stories.");
+                    }));
+                } else {
+                    System.out.println("Zephyr publisher: No tags found to add to Zephyr Scale test cases issues/stories.");
+                }
             }
-
             System.out.println("Zephyr publisher: Test Cycle Location: " + testCycleResponse.getTestCycle().getUrl());
 
         } catch (IOException | URISyntaxException | NullPointerException e) {

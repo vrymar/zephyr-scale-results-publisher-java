@@ -41,6 +41,10 @@ How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.sma
       >folderType=TEST_CYCLE  
        maxResults=20
 
+   **Switches to enable/disable update test cases with labels and/or stories (default=false)**
+      >updateTestCasesWithLabels=false
+       updateTestCasesWithStories=false
+
    **Jira Cloud properties**  
     NOTE: Used only to publish Cucumber tags as linked Jira issues. If not provided, this feature is ignored. 
       >jiraBaseUri=https://jira-eu-aholddelhaize.atlassian.net/rest/api/3/  
@@ -48,14 +52,14 @@ How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.sma
        jiraUserEmail=<JIRA_USER_EMAIL> (better to provide it as a GitHub secret or an environment variable. E.g. for Windows: set JIRA_USER_EMAIL=john.smith@ah.nl)
 
 ## Usage of the tool in the project
-> Build jar file of this ah-tech-zephyr-results-publisher project
+> Build jar file of this project
 
 ### Gradle project
 1. Create ***libs*** folder in the root directory of your project
-2. Copy ***ah-tech-zephyr-results-publisher-2.0.jar*** into 'libs' folder
+2. Copy ***zephyr-scale-results-publisher-2.0.0.jar*** into 'libs' folder
 3. In ***build.gradle***:
    - Add dependency to build.gradle:  
-      ``` scheduleRuntime files("libs/ah-tech-zephyr-results-publisher-2.0.jar") ```
+      ``` scheduleRuntime files("libs/zephyr-scale-results-publisher-2.0.0.jar") ```
    - Add configuration:  
       ```
       configurations {
@@ -68,7 +72,7 @@ How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.sma
       ```
       task runScheduleReader(type: JavaExec) {  
           workingDir("libs")  
-          mainClass.set("com.ah.Main")   
+          mainClass.set("org.vrymar.Main")   
           classpath = configurations.scheduleRuntime  
       }
      ```
@@ -78,7 +82,7 @@ How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.sma
 
 ### Maven project
 1. Create ***libs*** folder in the root directory of your project  
-2. Copy ***ah-tech-zephyr-results-publisher-2.0.jar*** into 'libs' folder  
+2. Copy ***zephyr-scale-results-publisher-2.0.0.jar*** into 'libs' folder  
 3. In ***pom.xml***:
    - Add ***build*** block:  
       ```xml
@@ -107,10 +111,10 @@ How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.sma
                               <goal>java</goal>
                           </goals>
                           <configuration>
-                              <mainClass>com.ah.Main</mainClass>
+                              <mainClass>org.vrymar.Main</mainClass>
                               <additionalClasspathElements>
                                   <additionalClasspathElement>
-                                      libs/ah-tech-zephyr-results-publisher-2.0.jar
+                                      libs/zephyr-scale-results-publisher-2.0.0.jar
                                   </additionalClasspathElement>
                               </additionalClasspathElements>
                           </configuration>
@@ -164,7 +168,7 @@ public class CalculatorSumTest {
 ### TestNG 
 
 ```java
-public class ExempleTest {
+public class ExampleTest {
 
     @Test(groups = {"group-1", "group-2"})
     public void DEV_T19_testMethod1() {

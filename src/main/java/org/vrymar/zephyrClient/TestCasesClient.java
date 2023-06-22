@@ -21,14 +21,21 @@ import java.util.List;
 
 public class TestCasesClient {
 
+    private static final String URI_PATH_TESTCASES = "testcases/";
+    private static final String URI_LOG_MESSAGE = "Zephyr publisher: URI to execute: ";
+    private static final String AUTHORIZATION = "Authorization";
+    private static final String BEARER = "Bearer ";
+    private static final String CONTENT_TYPE = "content-type";
+    private static final String CONTENT_TYPE_APP_JSON = "application/json";
+
     public TestCase getTestCase(PropertiesUtil propertiesUtil, String testCaseKey) throws URISyntaxException, IOException {
         TestCase testCase = null;
-        String uri = propertiesUtil.getBaseUri() + "testcases/" + testCaseKey;
-        System.out.println("Zephyr publisher: URI to execute: " + uri);
+        String uri = propertiesUtil.getBaseUri() + URI_PATH_TESTCASES + testCaseKey;
+        System.out.println(URI_LOG_MESSAGE + uri);
 
         URIBuilder uriBuilder = new URIBuilder(uri);
         HttpGet getRequest = new HttpGet(uriBuilder.build());
-        getRequest.setHeader("Authorization", "Bearer " + propertiesUtil.getZephyrToken());
+        getRequest.setHeader(AUTHORIZATION, BEARER + propertiesUtil.getZephyrToken());
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
              CloseableHttpResponse response = httpClient.execute(getRequest)) {
@@ -48,12 +55,12 @@ public class TestCasesClient {
         StringWriter jsonBody = new StringWriter();
         objectMapper.writeValue(jsonBody, testCase);
 
-        String uri = propertiesUtil.getBaseUri() + "testcases/" + testCaseKey;
-        System.out.println("Zephyr publisher: URI to execute: " + uri);
+        String uri = propertiesUtil.getBaseUri() + URI_PATH_TESTCASES + testCaseKey;
+        System.out.println(URI_LOG_MESSAGE + uri);
         URIBuilder uriBuilder = new URIBuilder(uri);
         HttpPut putRequest = new HttpPut(uriBuilder.build());
-        putRequest.setHeader("content-type", "application/json");
-        putRequest.setHeader("Authorization", "Bearer " + propertiesUtil.getZephyrToken());
+        putRequest.setHeader(CONTENT_TYPE, CONTENT_TYPE_APP_JSON);
+        putRequest.setHeader(AUTHORIZATION, BEARER + propertiesUtil.getZephyrToken());
         putRequest.setEntity(new StringEntity(jsonBody.toString()));
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -68,13 +75,13 @@ public class TestCasesClient {
     }
 
     public void createIssueLink(PropertiesUtil propertiesUtil, String testCaseKey, List<Integer> issueIds) throws URISyntaxException, IOException {
-        String uri = propertiesUtil.getBaseUri() + "testcases/" + testCaseKey + "/links/issues";
-        System.out.println("Zephyr publisher: URI to execute: " + uri);
+        String uri = propertiesUtil.getBaseUri() + URI_PATH_TESTCASES + testCaseKey + "/links/issues";
+        System.out.println(URI_LOG_MESSAGE + uri);
 
         URIBuilder uriBuilder = new URIBuilder(uri);
         HttpPost postRequest = new HttpPost(uriBuilder.build());
-        postRequest.setHeader("content-type", "application/json");
-        postRequest.setHeader("Authorization", "Bearer " + propertiesUtil.getZephyrToken());
+        postRequest.setHeader(CONTENT_TYPE, CONTENT_TYPE_APP_JSON);
+        postRequest.setHeader(AUTHORIZATION, BEARER + propertiesUtil.getZephyrToken());
 
         for (int issueId : issueIds) {
             postRequest.setEntity(new StringEntity("{\"issueId\": " + issueId + "}"));
