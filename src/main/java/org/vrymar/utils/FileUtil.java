@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -50,11 +49,10 @@ public class FileUtil {
         return path;
     }
 
-    public boolean deleteExistingFile(File file) {
+    public void deleteExistingFile(File file) throws IOException {
         if (file.exists()) {
-            return file.delete();
+           Files.delete(file.toPath());
         }
-        return false;
     }
 
     public File createZip(File resultsFile, List<String> filePaths) throws IOException {
@@ -62,40 +60,39 @@ public class FileUtil {
             for (String file : filePaths) {
                 waitIsFileNotEmpty(file);
                 File fileToZip = new File(file);
-                FileInputStream fis = new FileInputStream(fileToZip);
-                ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
-                zipOut.putNextEntry(zipEntry);
 
-                byte[] bytes = new byte[1024];
-                int length;
-                while ((length = fis.read(bytes)) >= 0) {
-                    zipOut.write(bytes, 0, length);
+                try (FileInputStream fis = new FileInputStream(fileToZip)) {
+                    ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
+                    zipOut.putNextEntry(zipEntry);
+
+                    byte[] bytes = new byte[1024];
+                    int length;
+                    while ((length = fis.read(bytes)) >= 0) {
+                        zipOut.write(bytes, 0, length);
+                    }
                 }
-                fis.close();
             }
-
             return new File(resultsFile.getAbsolutePath());
         }
     }
 
-    public boolean waitIsFileNotEmpty(String filePath) {
+    public void waitIsFileNotEmpty(String filePath) {
         int counter = 10;
         File file = new File(filePath);
 
         while (file.length() == 0) {
             if (counter == 0) {
-                return false;
+                return;
             }
 
             wait(2);
             file = new File(filePath);
 
             if (file.length() > 0) {
-                return true;
+                return;
             }
             counter--;
         }
-        return false;
     }
 
     private void wait(int sec) {
@@ -119,19 +116,19 @@ public class FileUtil {
                     .filter(p -> !Files.isDirectory(p))
                     .map(Path::toString)
                     .filter(f -> f.endsWith(fileExtension))
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return result;
     }
 
-    public HashMap<String, List<String>> getTestScenarioNameAndTagsFromResultsFile(PropertiesUtil propertiesUtil, String tagPrefix) throws IOException {
+    public Map<String, List<String>> getTestScenarioNameAndTagsFromResultsFile(PropertiesUtil propertiesUtil, String tagPrefix) throws IOException {
         Parser parser = new Parser();
         String resultsFolderName = propertiesUtil.getResultsFolder();
         File resultsFolder = findFile(resultsFolderName);
         List<String> filePaths = findAllFilesWithExtension(resultsFolder.toPath(), propertiesUtil.getResultsFileExtension());
         System.out.println("Zephyr publisher: File path to deserialize: " + filePaths.get(0));
         TestResult[] testResult = parser.parseCucumberTestResultFile(new File(filePaths.get(0)));
-        HashMap<String, List<String>> testScenarioNameTags = new HashMap<>();
+        Map<String, List<String>> testScenarioNameTags = new HashMap<>();
 
         Arrays.stream(testResult).forEach(result ->
                 result.getElements().forEach(element -> {

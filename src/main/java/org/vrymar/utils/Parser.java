@@ -11,8 +11,8 @@ import java.io.IOException;
 
 public class Parser {
 
-    public static <T> T tryParseResponse(CloseableHttpResponse response, Class<T> contentClass) throws IOException {
-        try {
+    public static <T> T tryParseResponse(CloseableHttpResponse response, Class<T> contentClass) {
+        try (response) {
             String responseEntity = EntityUtils.toString(response.getEntity());
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, false);
@@ -20,11 +20,6 @@ public class Parser {
         } catch (IOException e) {
             System.out.println("Zephyr publisher error: Fail to parse response. Error: " + e.getMessage());
             return null;
-        }
-        finally {
-            if(response != null){
-                response.close();
-            }
         }
     }
 
