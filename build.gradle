@@ -1,25 +1,27 @@
-plugins {
-    id 'java'
-}
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
 
-group 'org.vrymar'
-version '2.0.0'
+apply from: "${project.scripts_url}/${project.scripts_branch}/release.gradle"
+//apply from: "${project.scripts_url}/${project.scripts_branch}/spotbugs.gradle"
+apply from: "${project.scripts_url}/${project.scripts_branch}/signing.gradle"
 
 repositories {
     mavenCentral()
-    maven { url "https://jitpack.io" }
 }
 
-def lombokVersion = "1.18.22"
-def httpcomponentsVersion = "4.5.13"
-def jacksonVersion = "2.13.2"
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
 
 dependencies {
-    compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: httpcomponentsVersion
-    implementation group: 'org.apache.httpcomponents', name: 'httpmime', version: httpcomponentsVersion
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jacksonVersion
+    compileOnly "org.projectlombok:lombok:${project.lombok_version}"
+    annotationProcessor "org.projectlombok:lombok:${project.lombok_version}"
+    testCompileOnly "org.projectlombok:lombok:${project.lombok_version}"
+    testAnnotationProcessor "org.projectlombok:lombok:${project.lombok_version}"
+    implementation "org.apache.httpcomponents:httpclient:${project.http_components_version}"
+    implementation "org.apache.httpcomponents:httpmime:${project.http_components_version}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${project.jackson_version}"
 }
 
 test {
@@ -36,4 +38,8 @@ jar {
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+}
+
+wrapper {
+    gradleVersion = "${project.gradle_version}"
 }
