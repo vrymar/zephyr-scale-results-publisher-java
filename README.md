@@ -4,9 +4,6 @@ Detailed Automation API requests and properties can be found here: [Zephyr Scale
 How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.smartbear.com/zephyr-scale-cloud/docs/rest-api/generating-api-access-tokens.html)  
 
 - [Properties configuration](#properties-configuration)
-- [Usage of the tool in the project](#usage-of-the-tool-in-the-project)
-    * [Gradle project](#gradle-project)
-    * [Maven project](#maven-project)
 - [Map Test Results to Test Cases in Zephyr](#map-test-results-to-test-cases-in-zephyr)
     * [Cucumber](#cucumber)
     * [JUnit](#junit)
@@ -50,80 +47,6 @@ How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.sma
       >jiraBaseUri=https://jira-eu-aholddelhaize.atlassian.net/rest/api/3/  
        jiraToken=<JIRA_TOKEN> (better to provide it as a GitHub secret or an environment variable. E.g. for Windows: set JIRA_TOKEN=xxxxxxxxxxxxxx)  
        jiraUserEmail=<JIRA_USER_EMAIL> (better to provide it as a GitHub secret or an environment variable. E.g. for Windows: set JIRA_USER_EMAIL=john.smith@ah.nl)
-
-## Usage of the tool in the project
-> Build jar file of this project
-
-### Gradle project
-1. Create ***libs*** folder in the root directory of your project
-2. Copy ***zephyr-scale-results-publisher-2.0.0.jar*** into 'libs' folder
-3. In ***build.gradle***:
-   - Add dependency to build.gradle:  
-      ``` scheduleRuntime files("libs/zephyr-scale-results-publisher-2.0.0.jar") ```
-   - Add configuration:  
-      ```
-      configurations {
-          scheduleRuntime {
-              extendsFrom implementation
-          }
-      }
-     ```
-   - Add task:  
-      ```
-      task runScheduleReader(type: JavaExec) {  
-          workingDir("libs")  
-          mainClass.set("org.vrymar.Main")   
-          classpath = configurations.scheduleRuntime  
-      }
-     ```
-   - Make "runScheduleReader" task be executed after the main task:  
-    E.g.:
-     ``` test.finalizedBy(runScheduleReader) ```
-
-### Maven project
-1. Create ***libs*** folder in the root directory of your project  
-2. Copy ***zephyr-scale-results-publisher-2.0.0.jar*** into 'libs' folder  
-3. In ***pom.xml***:
-   - Add ***build*** block:  
-      ```xml
-      <build>
-          <plugins>
-              <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-surefire-plugin</artifactId>
-                  <version>${maven-surefire-plugin.version}</version>
-                  <configuration>
-                    <!-- Set this to "true" to ignore a failure during testing.
-                    Its use is NOT RECOMMENDED, but quite convenient on occasion.
-                    In this case it will not fail test phase\build and allow to execute zephyr publisher tool.
-                    Note: Failed tests results still can be seen in the reports and in Zephyr Scale -->
-                    <testFailureIgnore>true</testFailureIgnore>                  
-                  </configuration>
-              </plugin>
-              <plugin>
-                  <groupId>org.codehaus.mojo</groupId>
-                  <artifactId>exec-maven-plugin</artifactId>
-                  <version>${exec-maven-plugin.version}</version>
-                  <executions>
-                      <execution>
-                          <phase>test</phase>
-                          <goals>
-                              <goal>java</goal>
-                          </goals>
-                          <configuration>
-                              <mainClass>org.vrymar.Main</mainClass>
-                              <additionalClasspathElements>
-                                  <additionalClasspathElement>
-                                      libs/zephyr-scale-results-publisher-2.0.0.jar
-                                  </additionalClasspathElement>
-                              </additionalClasspathElements>
-                          </configuration>
-                      </execution>
-                  </executions>
-              </plugin>
-          </plugins>
-      </build>
-      ```
 
 ## Map Test Results to Test Cases in Zephyr
 
