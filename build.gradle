@@ -1,5 +1,6 @@
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
+//apply plugin: 'signing'
 
 apply from: "${project.scripts_url}/${project.scripts_branch}/release.gradle"
 //apply from: "${project.scripts_url}/${project.scripts_branch}/spotbugs.gradle"
@@ -28,6 +29,11 @@ test {
     useJUnitPlatform()
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
@@ -43,3 +49,61 @@ jar {
 wrapper {
     gradleVersion = "${project.gradle_version}"
 }
+
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication){
+//            artifactId = "zephyr-scale-results-publisher-java"
+//            groupId = "org.vrymar"
+//            version = "2.0.1"
+//            from components.java
+//            pom {
+//                packaging = "jar"
+//                name = "Zephyr Scale Test Results Publisher"
+//                url = "https://github.com/vrymar/zephyr-scale-results-publisher-java"
+//                description = "Publish automation test results into Zephyr Scale Cloud"
+//
+//                licenses {
+//                    license {
+//                        name = "MIT License"
+//                        url = "https://opensource.org/licenses/MIT"
+//                    }
+//                }
+//
+//                scm {
+//                    connection = "scm:https://github.com/vrymar/zephyr-scale-results-publisher-java.git"
+//                    developerConnection = "scm:git@https://github.com/vrymar/zephyr-scale-results-publisher-java.git"
+//                    url = "https://github.com/vrymar/zephyr-scale-results-publisher-java"
+//                }
+//
+//                developers {
+//                    developer {
+//                        id = "vrymar"
+//                        name = "Vitalii Rymar"
+//                        email = "vitalii.stas.rymar@gmail.com"
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    repositories {
+//        maven {
+//            var releasesUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+//            var snapshotsUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+//            url = {if (version.toString().endsWith("SNAPSHOT")) snapshotsUrl else releasesUrl}
+//            credentials {
+//                username = project.properties["mavenCentralUsername"].toString()
+//                password = project.properties["mavenCentralPassword"].toString()
+//            }
+//        }
+//    }
+//}
+
+//signing {
+//    if (!version.endsWith('SNAPSHOT')) {
+//        useGpgCmd()
+//        sign publishing.publications.mavenJava
+//    }
+//}
+
+

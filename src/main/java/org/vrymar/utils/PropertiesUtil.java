@@ -9,6 +9,9 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Properties;
 
+/**
+ * Properties utils class to work with *.properties file
+ */
 public class PropertiesUtil {
     private final Path propertiesFilePath;
     private final Properties properties;
@@ -53,6 +56,10 @@ public class PropertiesUtil {
     @Getter
     String jiraUserEmail;
 
+    /**
+     * Properties util constructor
+     * @param propertiesFilePath  path to the properties file
+     */
     @SneakyThrows
     public PropertiesUtil(Path propertiesFilePath) {
         this.propertiesFilePath = propertiesFilePath;
@@ -91,6 +98,12 @@ public class PropertiesUtil {
         }
     }
 
+    /**
+     * Read properties file values
+     * @param key key name to get value
+     * @return property value
+     * @throws IOException  IOException
+     */
     public String readProperties(String key) throws IOException {
         try (InputStream is = new FileInputStream(propertiesFilePath.toString())) {
             properties.load(is);

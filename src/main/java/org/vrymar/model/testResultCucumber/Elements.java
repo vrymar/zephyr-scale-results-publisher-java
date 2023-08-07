@@ -8,6 +8,9 @@ import lombok.Setter;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Elements model object
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)

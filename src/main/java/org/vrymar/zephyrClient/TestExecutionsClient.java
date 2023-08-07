@@ -16,10 +16,21 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Client to work with test executions in Zephyr Scale Cloud
+ */
 public class TestExecutionsClient {
 
     private static final String URL_SPLITTER_REGEX = "/";
 
+    /**
+     * Get test executions from Zephyr Scale Cloud with http request
+     * @param propertiesUtil  properties util tool to get properties
+     * @param testCycleKey  key of the test cycle
+     * @return  test execution
+     * @throws URISyntaxException  URISyntaxException
+     * @throws IOException  IOException
+     */
     public TestExecutions getTestExecutions(PropertiesUtil propertiesUtil, String testCycleKey) throws URISyntaxException, IOException {
         TestExecutions testExecutions = null;
         String uri = propertiesUtil.getBaseUri() + "testexecutions";
@@ -48,6 +59,11 @@ public class TestExecutionsClient {
         return testExecutions;
     }
 
+    /**
+     * Retrieve scenarios key from test executions
+     * @param testExecutions  test executions object
+     * @return list of scenarios keys
+     */
     public List<String> getScenariosKeys(TestExecutions testExecutions) {
         List<String> keys = new ArrayList<>();
         testExecutions.getValues().forEach(values -> {

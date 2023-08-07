@@ -15,10 +15,19 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * Files management class
+ */
 public class FileUtil {
 
     private static final String TAG_NAME_SPLITTER = "=";
 
+    /**
+     * Find a file by its name
+     * @param fileName name of the file
+     * @return found file
+     * @throws IOException  IOException
+     */
     public File findFile(String fileName) throws IOException {
         Path projectPath = getProjectRootPath();
         System.out.println("Zephyr publisher: Path to start search: " + projectPath);
@@ -38,6 +47,10 @@ public class FileUtil {
         return file;
     }
 
+    /**
+     * Get project root path
+     * @return path to the root project
+     */
     public Path getProjectRootPath() {
         File file = new File(System.getProperty("user.dir"));
         Path path = Paths.get(file.getAbsolutePath());
@@ -49,12 +62,24 @@ public class FileUtil {
         return path;
     }
 
+    /**
+     * Delete any file
+     * @param file  file to delete
+     * @throws IOException  IOException
+     */
     public void deleteExistingFile(File file) throws IOException {
         if (file.exists()) {
            Files.delete(file.toPath());
         }
     }
 
+    /**
+     * Creates zipped file
+     * @param resultsFile   file to be zipped
+     * @param filePaths     path to the zipped file
+     * @return Created zip file
+     * @throws IOException  IOException
+     */
     public File createZip(File resultsFile, List<String> filePaths) throws IOException {
         try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(resultsFile.getAbsolutePath()))) {
             for (String file : filePaths) {
@@ -76,6 +101,10 @@ public class FileUtil {
         }
     }
 
+    /**
+     * Wait until data appears in file
+     * @param filePath  path to the file
+     */
     public void waitIsFileNotEmpty(String filePath) {
         int counter = 10;
         File file = new File(filePath);
@@ -103,6 +132,13 @@ public class FileUtil {
         }
     }
 
+    /**
+     * Find all files with specific extension. E.g. *.json
+     * @param folderPath path to the root folder to look for the file
+     * @param fileExtension file extension to look for
+     * @return list of found files
+     * @throws IOException  IOException
+     */
     public List<String> findAllFilesWithExtension(Path folderPath, String fileExtension) throws IOException {
         if (!Files.isDirectory(folderPath)) {
             System.out.println("Zephyr publisher: Incorrect path to look for the file: " + folderPath);
@@ -121,6 +157,13 @@ public class FileUtil {
         return result;
     }
 
+    /**
+     * Get scenario name and tags from results file.
+     * @param propertiesUtil  properties util tool to get properties
+     * @param tagPrefix  tag prefix
+     * @return map of names and tags
+     * @throws IOException  IOException
+     */
     public Map<String, List<String>> getTestScenarioNameAndTagsFromResultsFile(PropertiesUtil propertiesUtil, String tagPrefix) throws IOException {
         Parser parser = new Parser();
         String resultsFolderName = propertiesUtil.getResultsFolder();

@@ -16,8 +16,18 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Client to get folders from Zephyr Scale
+ */
 public class FoldersClient {
 
+    /**
+     * Retrieve test cycle folders from Zephyr Scale
+     * @param propertiesUtil  properties util tool to get properties
+     * @return folders object
+     * @throws IOException  IOException
+     * @throws URISyntaxException  URISyntaxException
+     */
     public Folders getZephyrFolders(PropertiesUtil propertiesUtil) throws IOException, URISyntaxException {
         Folders folders = null;
         String uri = propertiesUtil.getBaseUri() + "folders";

@@ -21,8 +21,19 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Client to get test cycle data from Zephyr Scale Cloud
+ */
 public class TestCycleClient {
 
+    /**
+     * Create test cycle with test data by post http request
+     * @param propertiesUtil  properties util tool to get properties
+     * @param zipFile  zip file with test data
+     * @return http response
+     * @throws IOException   IOException
+     * @throws URISyntaxException  URISyntaxException
+     */
     public TestCycleResponse postTestCycle(PropertiesUtil propertiesUtil, File zipFile) throws IOException, URISyntaxException {
         String baseUri = propertiesUtil.getBaseUri();
         String uriSuffix = propertiesUtil.getUriSuffix();

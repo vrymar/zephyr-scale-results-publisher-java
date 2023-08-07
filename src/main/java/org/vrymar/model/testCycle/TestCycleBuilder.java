@@ -3,6 +3,9 @@ package org.vrymar.model.testCycle;
 import lombok.Builder;
 import java.util.List;
 
+/**
+ * TestCycle object builder
+ */
 @Builder
 public class TestCycleBuilder {
 
@@ -19,6 +22,15 @@ public class TestCycleBuilder {
                 name, description, jiraProjectVersion, folderId, customFields);
     }
 
+    /**
+     * Build customized test cycle
+     * @param name  test cycle name
+     * @param description  test cycle description
+     * @param foldersIds test cycle folders ids
+     * @param jiraProjectVersion  test cycle jira project version
+     * @param customFields  test cycle custom fields
+     * @return test cycle as a string
+     */
     public static String generateTestCycle(String name, String description, List<Integer> foldersIds,
                                      int jiraProjectVersion, String customFields) {
 
