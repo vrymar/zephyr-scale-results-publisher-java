@@ -7,6 +7,9 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+/**
+ * Status model object
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -7,6 +7,9 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+/**
+ * Project model object
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
