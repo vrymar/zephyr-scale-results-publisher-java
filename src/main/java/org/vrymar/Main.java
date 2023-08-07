@@ -20,10 +20,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Main execution class
+ */
 public class Main {
 
     private static final String PROP_FILE = "zephyr.properties";
 
+    /**
+     * Execute all actions
+     * @param args  array of arguments
+     */
     public static void main(String[] args) {
         FileUtil fileUtil = new FileUtil();
         TestCycleClient publisher = new TestCycleClient();

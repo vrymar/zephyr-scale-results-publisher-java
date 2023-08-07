@@ -19,6 +19,9 @@ import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.util.List;
 
+/**
+ * Client to get test cases from Zephyr Scale Cloud
+ */
 public class TestCasesClient {
 
     private static final String URI_PATH_TESTCASES = "testcases/";
@@ -28,6 +31,14 @@ public class TestCasesClient {
     private static final String CONTENT_TYPE = "content-type";
     private static final String CONTENT_TYPE_APP_JSON = "application/json";
 
+    /**
+     * Get test case from Zephyr Scale Cloud
+     * @param propertiesUtil  properties util tool to get properties
+     * @param testCaseKey  test case key value
+     * @return  test case
+     * @throws URISyntaxException  URISyntaxException
+     * @throws IOException  IOException
+     */
     public TestCase getTestCase(PropertiesUtil propertiesUtil, String testCaseKey) throws URISyntaxException, IOException {
         TestCase testCase = null;
         String uri = propertiesUtil.getBaseUri() + URI_PATH_TESTCASES + testCaseKey;
@@ -49,6 +60,14 @@ public class TestCasesClient {
         return testCase;
     }
 
+    /**
+     * Update test case in Zephyr Scale Cloud
+     * @param propertiesUtil  properties util tool to get properties
+     * @param testCaseKey  test case key value
+     * @param testCase test case to update
+     * @throws URISyntaxException  URISyntaxException
+     * @throws IOException  IOException
+     */
     public void updateTestCase(PropertiesUtil propertiesUtil, String testCaseKey, TestCase testCase) throws URISyntaxException, IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -74,6 +93,14 @@ public class TestCasesClient {
         }
     }
 
+    /**
+     * Add issue/story link to test case Zephyr Scale Cloud
+     * @param propertiesUtil  properties util tool to get properties
+     * @param testCaseKey  test case key value
+     * @param issueIds issue/story id to link
+     * @throws URISyntaxException  URISyntaxException
+     * @throws IOException  IOException
+     */
     public void createIssueLink(PropertiesUtil propertiesUtil, String testCaseKey, List<Integer> issueIds) throws URISyntaxException, IOException {
         String uri = propertiesUtil.getBaseUri() + URI_PATH_TESTCASES + testCaseKey + "/links/issues";
         System.out.println(URI_LOG_MESSAGE + uri);
@@ -92,6 +119,13 @@ public class TestCasesClient {
             }
         }
     }
+
+    /**
+     * Add labels to test case
+     * @param testCase  test case object
+     * @param labels  list of labels
+     * @return  test case object with labels
+     */
 
     public TestCase buildTestCaseBodyWithLabels(TestCase testCase, List<String> labels) {
         testCase.setLabels(labels);

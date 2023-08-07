@@ -8,6 +8,9 @@ import lombok.Setter;
 
 import java.util.Objects;
 
+/**
+ * JiraProjectVersion model object
+ */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)

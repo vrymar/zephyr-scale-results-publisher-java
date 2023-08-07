@@ -15,9 +15,19 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-
+/**
+ * Client to get Jira issues/stories
+ */
 public class JiraIssuesClient {
 
+    /**
+     * Get Jira issue/story
+     * @param propertiesUtil  properties util tool to get properties
+     * @param issueKeys  key of the issue to retrieve
+     * @return  list of Jira issues/stories
+     * @throws URISyntaxException  URISyntaxException
+     * @throws IOException  IOException
+     */
     public List<JiraIssue> getJiraIssue(PropertiesUtil propertiesUtil, List<String> issueKeys) throws URISyntaxException, IOException {
         List<JiraIssue> jiraIssues = new ArrayList<>();
         for (String issueKey : issueKeys) {
@@ -55,6 +65,11 @@ public class JiraIssuesClient {
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
     }
 
+    /**
+     * Retrieve Jira IDs from Jira issue
+     * @param jiraIssues list of Jira issues
+     * @return list of Jira issues IDs
+     */
     public List<Integer> getIssuesIds(List<JiraIssue> jiraIssues) {
         List<Integer> ids = new ArrayList<>();
         jiraIssues.forEach(issue -> {

@@ -9,8 +9,18 @@ import org.apache.http.util.EntityUtils;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Parser class
+ */
 public class Parser {
 
+    /**
+     * Try to parse http response
+     * @param response  CloseableHttpResponse
+     * @param contentClass  class to map the data
+     * @return  parsed object
+     * @param <T>  type of the parsed object
+     */
     public static <T> T tryParseResponse(CloseableHttpResponse response, Class<T> contentClass) {
         try (response) {
             String responseEntity = EntityUtils.toString(response.getEntity());
@@ -23,6 +33,12 @@ public class Parser {
         }
     }
 
+    /**
+     * Parse Cucumber test result file
+     * @param resultsFile result file
+     * @return TestResult array object
+     * @throws IOException  IOException
+     */
     public TestResult[] parseCucumberTestResultFile(File resultsFile) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, false);
