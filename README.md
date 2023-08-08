@@ -3,6 +3,9 @@ The tool provides an opportunity to update test cases status and publish automat
 Detailed Automation API requests and properties can be found here: [Zephyr Scale API](https://support.smartbear.com/zephyr-scale-cloud/api-docs/#tag/Automations)  
 How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.smartbear.com/zephyr-scale-cloud/docs/rest-api/generating-api-access-tokens.html)  
 
+- [Installation](#installation)
+  * [Gradle](#gradle)
+  * [Maven](#maven)
 - [Properties configuration](#properties-configuration)
 - [Map Test Results to Test Cases in Zephyr](#map-test-results-to-test-cases-in-zephyr)
     * [Cucumber](#cucumber)
@@ -11,6 +14,102 @@ How to generate ZEPHYR TOKEN: [Generating API Access Tokens](https://support.sma
 - [Publish Cucumber Tags as Test Case Labels](#publish-cucumber-tags-as-test-case-labels)
 - [Publish Cucumber Tags as Linked Jira Issues](#publish-cucumber-tags-as-linked-jira-issues)
 
+## Installation
+
+### Gradle
+
+1. Add repository to build.gradle:
+```groovy
+repositories {
+   maven { url 'https://jitpack.io' }
+}
+```
+
+2. Add dependency with the relevant version to build.gradle:
+```groovy
+dependencies {
+	        implementation 'com.github.vrymar:zephyr-scale-results-publisher-java:2.0.1'
+	}
+```
+
+3. Add configuration to build.gradle:
+```groovy
+configurations {
+    scheduleRuntime {
+        extendsFrom implementation
+    }
+}
+```
+
+4. Add task to build.gradle:
+```groovy
+task runScheduleReader(type: JavaExec) {
+    mainClass.set("org.vrymar.Main")   
+    classpath = configurations.scheduleRuntime  
+}
+```
+
+5. Make `runScheduleReader` task be executed after the main task in build.gradle:
+```groovy
+test.finalizedBy(runScheduleReader)
+```
+
+### Maven
+
+1. Add JitPack to repositories in pom.xml:
+   ```xml
+   <repositories>
+     <repository>
+        <id>jitpack.io</id>
+          <url>https://jitpack.io</url>
+     </repository>
+   </repositories>
+   ```
+   
+2. Add dependency with the relevant version in pom.xml:
+    ```xml
+    <dependency>
+        <groupId>com.github.vrymar</groupId>
+        <artifactId>zephyr-scale-results-publisher-java</artifactId>
+        <version>2.0.1</version>
+    </dependency>
+    ```
+
+3. Add plugins in pom.xml:
+    ```xml
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                  <!-- Set this to "true" to ignore a failure during testing.
+                  Its use is NOT RECOMMENDED, but quite convenient on occasion.
+                  In this case it will not fail test phase\build and allow to execute zephyr publisher tool.
+                  Note: Failed tests results still can be seen in the reports and in Zephyr Scale -->
+                  <testFailureIgnore>false</testFailureIgnore>                  
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>org.vrymar.Main</mainClass>                           
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    ```
 
 ## Properties configuration
 1. Create ***zephyr.properties*** file in the ***resources*** folder of your project<br/>
