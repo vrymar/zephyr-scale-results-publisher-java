@@ -1,5 +1,7 @@
 package org.vrymar;
 
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.vrymar.jiraClient.JiraIssuesClient;
 import org.vrymar.model.jiraIssue.JiraIssue;
 import org.vrymar.zephyrClient.TestCycleClient;
@@ -29,14 +31,16 @@ public class Main {
 
     /**
      * Execute all actions
-     * @param args  array of arguments
+     *
+     * @param args array of arguments
      */
     public static void main(String[] args) {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        TestCycleClient publisher = new TestCycleClient(httpClient);
         FileUtil fileUtil = new FileUtil();
-        TestCycleClient publisher = new TestCycleClient();
-        TestExecutionsClient testExecutionsClient = new TestExecutionsClient();
-        TestCasesClient testCasesClient = new TestCasesClient();
-        JiraIssuesClient jiraIssuesClient = new JiraIssuesClient();
+        TestExecutionsClient testExecutionsClient = new TestExecutionsClient(httpClient);
+        TestCasesClient testCasesClient = new TestCasesClient(httpClient);
+        JiraIssuesClient jiraIssuesClient = new JiraIssuesClient(httpClient);
 
         try {
             File resourceFile = fileUtil.findFile(PROP_FILE);
@@ -72,7 +76,6 @@ public class Main {
                 return;
             }
 
-
             String testCycleKey = testCycleResponse.getTestCycle().getKey();
             TestExecutions testExecutions = testExecutionsClient.getTestExecutions(propertiesUtil, testCycleKey);
             List<String> scenariosKeys = testExecutionsClient.getScenariosKeys(testExecutions);
@@ -84,6 +87,27 @@ public class Main {
                     testCases.add(testCase);
 
                 } catch (URISyntaxException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            // Update Test Cases with script with steps
+            testCases.forEach(testCase -> {
+                Map<String, String> testScriptWithSteps;
+
+                try {
+                    testScriptWithSteps = fileUtil.getTestScenarioKeyAndStepsFromResultsFile(propertiesUtil, testCase);
+                    testScriptWithSteps.forEach((key, value) -> {
+                        try {
+                            Integer responseCode = testCasesClient.createTestScriptWithSteps(propertiesUtil, key, "bdd", value);
+                            System.out.println("Zephyr publisher: Create test script with steps in Test Case " + key + " response status code: " + responseCode);
+                        } catch (URISyntaxException | IOException e) {
+                            System.out.println("Zephyr publisher: Error: Failed to update test case with script with steps. Error: " + e.getMessage());
+                            throw new RuntimeException(e);
+                        }
+                    });
+                } catch (IOException e) {
+                    System.out.println("Zephyr publisher: Error: Failed to update test case with script with steps. Error: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
             });

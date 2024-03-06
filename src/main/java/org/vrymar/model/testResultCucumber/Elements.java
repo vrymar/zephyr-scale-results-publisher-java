@@ -21,6 +21,9 @@ public class Elements {
     @JsonProperty("tags")
     private List<Tags> tags;
 
+    @JsonProperty("steps")
+    private List<Steps> steps;
+
 
     @Override
     public boolean equals(Object o){

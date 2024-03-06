@@ -1,5 +1,6 @@
 package org.vrymar.utils;
 
+import org.vrymar.model.testCase.TestCase;
 import org.vrymar.model.testResultCucumber.TestResult;
 
 import java.io.File;
@@ -24,9 +25,10 @@ public class FileUtil {
 
     /**
      * Find a file by its name
+     *
      * @param fileName name of the file
      * @return found file
-     * @throws IOException  IOException
+     * @throws IOException IOException
      */
     public File findFile(String fileName) throws IOException {
         Path projectPath = getProjectRootPath();
@@ -49,6 +51,7 @@ public class FileUtil {
 
     /**
      * Get project root path
+     *
      * @return path to the root project
      */
     public Path getProjectRootPath() {
@@ -64,21 +67,23 @@ public class FileUtil {
 
     /**
      * Delete any file
-     * @param file  file to delete
-     * @throws IOException  IOException
+     *
+     * @param file file to delete
+     * @throws IOException IOException
      */
     public void deleteExistingFile(File file) throws IOException {
         if (file.exists()) {
-           Files.delete(file.toPath());
+            Files.delete(file.toPath());
         }
     }
 
     /**
      * Creates zipped file
-     * @param resultsFile   file to be zipped
-     * @param filePaths     path to the zipped file
+     *
+     * @param resultsFile file to be zipped
+     * @param filePaths   path to the zipped file
      * @return Created zip file
-     * @throws IOException  IOException
+     * @throws IOException IOException
      */
     public File createZip(File resultsFile, List<String> filePaths) throws IOException {
         try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(resultsFile.getAbsolutePath()))) {
@@ -103,7 +108,8 @@ public class FileUtil {
 
     /**
      * Wait until data appears in file
-     * @param filePath  path to the file
+     *
+     * @param filePath path to the file
      */
     public void waitIsFileNotEmpty(String filePath) {
         int counter = 10;
@@ -124,6 +130,7 @@ public class FileUtil {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void wait(int sec) {
         try {
             TimeUnit.SECONDS.sleep(sec);
@@ -134,10 +141,11 @@ public class FileUtil {
 
     /**
      * Find all files with specific extension. E.g. *.json
-     * @param folderPath path to the root folder to look for the file
+     *
+     * @param folderPath    path to the root folder to look for the file
      * @param fileExtension file extension to look for
      * @return list of found files
-     * @throws IOException  IOException
+     * @throws IOException IOException
      */
     public List<String> findAllFilesWithExtension(Path folderPath, String fileExtension) throws IOException {
         if (!Files.isDirectory(folderPath)) {
@@ -159,18 +167,14 @@ public class FileUtil {
 
     /**
      * Get scenario name and tags from results file.
-     * @param propertiesUtil  properties util tool to get properties
-     * @param tagPrefix  tag prefix
+     *
+     * @param propertiesUtil properties util tool to get properties
+     * @param tagPrefix      tag prefix
      * @return map of names and tags
-     * @throws IOException  IOException
+     * @throws IOException IOException
      */
     public Map<String, List<String>> getTestScenarioNameAndTagsFromResultsFile(PropertiesUtil propertiesUtil, String tagPrefix) throws IOException {
-        Parser parser = new Parser();
-        String resultsFolderName = propertiesUtil.getResultsFolder();
-        File resultsFolder = findFile(resultsFolderName);
-        List<String> filePaths = findAllFilesWithExtension(resultsFolder.toPath(), propertiesUtil.getResultsFileExtension());
-        System.out.println("Zephyr publisher: File path to deserialize: " + filePaths.get(0));
-        TestResult[] testResult = parser.parseCucumberTestResultFile(new File(filePaths.get(0)));
+        TestResult[] testResult = getTestResults(propertiesUtil);
         Map<String, List<String>> testScenarioNameTags = new HashMap<>();
 
         Arrays.stream(testResult).forEach(result ->
@@ -189,5 +193,50 @@ public class FileUtil {
                 }));
 
         return testScenarioNameTags;
+    }
+
+    /**
+     * Get test scenario key and steps from results file
+     *
+     * @param propertiesUtil properties util tool to get properties
+     * @param testCase       test case to get key and steps
+     * @return map of key and steps
+     * @throws IOException IOException
+     */
+    public Map<String, String> getTestScenarioKeyAndStepsFromResultsFile(PropertiesUtil propertiesUtil, TestCase testCase) throws IOException {
+        TestResult[] testResults = getTestResults(propertiesUtil);
+        Map<String, String> testScenarioNameSteps = new HashMap<>();
+
+        Arrays.stream(testResults).forEach(result ->
+                result.getElements().forEach(element -> {
+
+                    element.getSteps().forEach(step -> {
+                        if (step.getKeyword().equals("Background")) {
+                            step.setName("Given " + step.getName());
+                        }
+                    });
+
+                    String scenarioName = result.getName() + ": " + element.getName();
+
+                    if (scenarioName.equals(testCase.getName())) {
+                        StringBuilder testScriptWithSteps = new StringBuilder();
+                        element.getSteps().forEach(step -> testScriptWithSteps
+                                .append(step.getKeyword())
+                                .append(" ")
+                                .append(step.getName())
+                                .append("\\n"));
+                        testScenarioNameSteps.put(testCase.getKey(), testScriptWithSteps.toString());
+                    }
+                }));
+        return testScenarioNameSteps;
+    }
+
+    private TestResult[] getTestResults(PropertiesUtil propertiesUtil) throws IOException {
+        Parser parser = new Parser();
+        String resultsFolderName = propertiesUtil.getResultsFolder();
+        File resultsFolder = findFile(resultsFolderName);
+        List<String> filePaths = findAllFilesWithExtension(resultsFolder.toPath(), propertiesUtil.getResultsFileExtension());
+        System.out.println("Zephyr publisher: File path to deserialize: " + filePaths.get(0));
+        return parser.parseCucumberTestResultFile(new File(filePaths.get(0)));
     }
 }

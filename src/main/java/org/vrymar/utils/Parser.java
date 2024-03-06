@@ -1,10 +1,11 @@
 package org.vrymar.utils;
 
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.vrymar.model.testResultCucumber.TestResult;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.util.EntityUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,8 @@ public class Parser {
         } catch (IOException e) {
             System.out.println("Zephyr publisher error: Fail to parse response. Error: " + e.getMessage());
             return null;
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
     }
 
