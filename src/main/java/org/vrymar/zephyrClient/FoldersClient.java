@@ -1,35 +1,47 @@
 package org.vrymar.zephyrClient;
 
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.net.URIBuilder;
 import org.vrymar.model.folders.Folders;
 import org.vrymar.utils.PropertiesUtil;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.vrymar.utils.Parser;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Client to get folders from Zephyr Scale
  */
 public class FoldersClient {
+    private final CloseableHttpClient httpClient;
+
+    /**
+     * Constructor
+     *
+     * @param httpClient CloseableHttpClient
+     */
+    public FoldersClient(CloseableHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     /**
      * Retrieve test cycle folders from Zephyr Scale
-     * @param propertiesUtil  properties util tool to get properties
+     *
+     * @param propertiesUtil properties util tool to get properties
      * @return folders object
-     * @throws IOException  IOException
-     * @throws URISyntaxException  URISyntaxException
+     * @throws IOException        IOException
+     * @throws URISyntaxException URISyntaxException
      */
     public Folders getZephyrFolders(PropertiesUtil propertiesUtil) throws IOException, URISyntaxException {
-        Folders folders = null;
+        AtomicReference<Folders> folders = new AtomicReference<>();
         String uri = propertiesUtil.getBaseUri() + "folders";
 
         List<NameValuePair> params = new ArrayList<>();
@@ -43,15 +55,16 @@ public class FoldersClient {
         HttpGet getRequest = new HttpGet(uriBuilder.build());
         getRequest.setHeader("Authorization", "Bearer " + propertiesUtil.getZephyrToken());
 
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
-             CloseableHttpResponse response = httpClient.execute(getRequest)) {
-            int responseCode = response.getStatusLine().getStatusCode();
+        HttpClientResponseHandler<Folders> responseHandler = response -> {
+            int responseCode = response.getCode();
             System.out.println("Zephyr publisher: Get Zephyr Scale folders response status code: " + responseCode);
 
             if (responseCode == 200) {
-                folders = Parser.tryParseResponse(response, Folders.class);
+                folders.set(Parser.tryParseResponse((CloseableHttpResponse) response, Folders.class));
             }
-        }
-        return folders;
+            return folders.get();
+        };
+
+        return httpClient.execute(getRequest, responseHandler);
     }
 }

@@ -1,6 +1,12 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Unit tests
+
+## [2.0.2]
+### Added
+- Publish test script with steps into each test case
 
 ## [2.0.1]
 ### Added

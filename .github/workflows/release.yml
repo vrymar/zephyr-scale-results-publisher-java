@@ -5,7 +5,7 @@ on:
 
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       - '.github/**'
       - README.md
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Generate versions
         uses: HardNorth/github-version-generate@v1
@@ -35,39 +35,39 @@ jobs:
           version-file-extraction-pattern: ${{ env.VERSION_EXTRACT_PATTERN }}
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup git credentials
-        uses: oleksiyrudenko/gha-git-credentials@v2.1.1
-        with:
-          name: 'vrymar'
-          email: '17924151+vrymar@users.noreply.github.com'
-          token: ${{ secrets.GH_TOKEN }}
+      # - name: Setup git credentials
+      #   uses: oleksiyrudenko/gha-git-credentials@v2.1.1
+      #   with:
+      #     name: 'vrymar'
+      #     email: '17924151+vrymar@users.noreply.github.com'
+      #     token: ${{ secrets.GH_TOKEN }}
 
-      - name: Release with Gradle
-        id: release
-        run: |
-          ./gradlew release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=${{ env.RELEASE_VERSION }} \
-          -Prelease.newVersion=${{ env.NEXT_VERSION }} -PpublishRepo=${{ env.REPOSITORY_URL }}${{ github.repository }} \
-          -PgithubUserName=${{ github.actor }} -PgithubToken=${{ secrets.GITHUB_TOKEN }} \
-          -PgpgPassphrase=${{  secrets.GPG_PASSPHRASE  }} -PgpgPrivateKey="${{ secrets.GPG_PRIVATE_KEY }}"
+      # - name: Release with Gradle
+      #   id: release
+      #   run: |
+      #     ./gradlew release -Prelease.useAutomaticVersion=true -Prelease.releaseVersion=${{ env.RELEASE_VERSION }} \
+      #     -Prelease.newVersion=${{ env.NEXT_VERSION }} -PpublishRepo=${{ env.REPOSITORY_URL }}${{ github.repository }} \
+      #     -PgithubUserName=${{ github.actor }} -PgithubToken=${{ secrets.GITHUB_TOKEN }} \
+      #     -PgpgPassphrase=${{  secrets.GPG_PASSPHRASE  }} -PgpgPrivateKey="${{ secrets.GPG_PRIVATE_KEY }}"
 
-      - name: Update CHANGELOG.md
-        id: changelogUpdate
-        run: |
-          sed '/\[Unreleased\]/q' ${{ env.CHANGE_LOG_FILE }} >> ${{ env.CHANGE_LOG_TMP_FILE }}
-          sed -E '1,/#?#\s*\[Unreleased\]/d' ${{ env.CHANGE_LOG_FILE }} | sed -E '/#?#\s*\[/q' | \
-          { echo -e '\n## [${{env.RELEASE_VERSION}}]'; sed '$d'; } >> ${{ env.CHANGE_LOG_TMP_FILE }}
-          grep -E '#?#\s*\[[0-9]' ${{ env.CHANGE_LOG_FILE }} | head -n1 >> ${{ env.CHANGE_LOG_TMP_FILE }}
-          sed -E '1,/#?#\s*\[[0-9]/d' ${{ env.CHANGE_LOG_FILE }} >> ${{ env.CHANGE_LOG_TMP_FILE }}
-          rm ${{ env.CHANGE_LOG_FILE }}
-          mv ${{ env.CHANGE_LOG_TMP_FILE }} ${{ env.CHANGE_LOG_FILE }}
-          git add ${{ env.CHANGE_LOG_FILE }}
-          git commit -m "Changelog update"
-          git push
+      # - name: Update CHANGELOG.md
+      #   id: changelogUpdate
+      #   run: |
+      #     sed '/\[Unreleased\]/q' ${{ env.CHANGE_LOG_FILE }} >> ${{ env.CHANGE_LOG_TMP_FILE }}
+      #     sed -E '1,/#?#\s*\[Unreleased\]/d' ${{ env.CHANGE_LOG_FILE }} | sed -E '/#?#\s*\[/q' | \
+      #     { echo -e '\n## [${{env.RELEASE_VERSION}}]'; sed '$d'; } >> ${{ env.CHANGE_LOG_TMP_FILE }}
+      #     grep -E '#?#\s*\[[0-9]' ${{ env.CHANGE_LOG_FILE }} | head -n1 >> ${{ env.CHANGE_LOG_TMP_FILE }}
+      #     sed -E '1,/#?#\s*\[[0-9]/d' ${{ env.CHANGE_LOG_FILE }} >> ${{ env.CHANGE_LOG_TMP_FILE }}
+      #     rm ${{ env.CHANGE_LOG_FILE }}
+      #     mv ${{ env.CHANGE_LOG_TMP_FILE }} ${{ env.CHANGE_LOG_FILE }}
+      #     git add ${{ env.CHANGE_LOG_FILE }}
+      #     git commit -m "Changelog update"
+      #     git push
 
       - name: Read changelog Entry
         id: readChangelogEntry
@@ -84,18 +84,18 @@ jobs:
           name: Release ${{ env.RELEASE_VERSION }}
           body: ${{ steps.readChangelogEntry.outputs.changes }}
 
-      - name: Checkout main branch
-        if: ${{github.ref}} == 'master'
-        uses: actions/checkout@v3
-        with:
-          ref: 'main'
-          fetch-depth: 0
+      # - name: Checkout main branch
+      #   if: ${{github.ref}} == 'master'
+      #   uses: actions/checkout@v3
+      #   with:
+      #     ref: 'main'
+      #     fetch-depth: 0
 
-      - name: Merge release branch into develop
-        id: mergeIntoMain
-        if: ${{github.ref}} == 'master'
-        run: |
-          git merge -m 'Merge master branch into main after a release' origin/master
-          git status | (! grep -Fq 'both modified:') || git status | grep -F 'both modified:' \
-          | { echo -e 'Unable to merge master into main, merge conflicts:'; (! grep -Eo '[^ ]+$') }
-          git push origin main
+      # - name: Merge release branch into develop
+      #   id: mergeIntoMain
+      #   if: ${{github.ref}} == 'master'
+      #   run: |
+      #     git merge -m 'Merge master branch into main after a release' origin/master
+      #     git status | (! grep -Fq 'both modified:') || git status | grep -F 'both modified:' \
+      #     | { echo -e 'Unable to merge master into main, merge conflicts:'; (! grep -Eo '[^ ]+$') }
+      #     git push origin main

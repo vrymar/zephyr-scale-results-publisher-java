@@ -1,12 +1,12 @@
 package org.vrymar.jiraClient;
 
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.net.URIBuilder;
 import org.vrymar.model.jiraIssue.JiraIssue;
 import org.vrymar.utils.PropertiesUtil;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.vrymar.utils.Parser;
 
 import java.io.IOException;
@@ -20,13 +20,20 @@ import java.util.List;
  */
 public class JiraIssuesClient {
 
+    private final CloseableHttpClient httpClient;
+
+    public JiraIssuesClient(CloseableHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
+
     /**
      * Get Jira issue/story
-     * @param propertiesUtil  properties util tool to get properties
-     * @param issueKeys  key of the issue to retrieve
-     * @return  list of Jira issues/stories
-     * @throws URISyntaxException  URISyntaxException
-     * @throws IOException  IOException
+     *
+     * @param propertiesUtil properties util tool to get properties
+     * @param issueKeys      key of the issue to retrieve
+     * @return list of Jira issues/stories
+     * @throws URISyntaxException URISyntaxException
+     * @throws IOException        IOException
      */
     public List<JiraIssue> getJiraIssue(PropertiesUtil propertiesUtil, List<String> issueKeys) throws URISyntaxException, IOException {
         List<JiraIssue> jiraIssues = new ArrayList<>();
@@ -39,23 +46,21 @@ public class JiraIssuesClient {
             getRequest.setHeader("Accept", "application/json");
             getRequest.setHeader("Authorization", getBasicAuthenticationHeader(propertiesUtil.getJiraUserEmail(), propertiesUtil.getJiraToken()));
 
-            try (CloseableHttpClient httpClient = HttpClients.createDefault();
-                 CloseableHttpResponse response = httpClient.execute(getRequest)) {
-                int responseCode = response.getStatusLine().getStatusCode();
-                System.out.println("Zephyr publisher: Get Jira issue response status code: " + responseCode);
-
+            HttpClientResponseHandler<JiraIssue> responseHandler = response -> {
+                JiraIssue jiraIssue = null;
+                int responseCode = response.getCode();
                 switch (responseCode) {
-                    case 200 -> {
-                        JiraIssue jiraIssue = Parser.tryParseResponse(response, JiraIssue.class);
-                        jiraIssues.add(jiraIssue);
-                    }
+                    case 200 -> jiraIssue = Parser.tryParseResponse((CloseableHttpResponse) response, JiraIssue.class);
                     case 404 -> System.out.println("Zephyr publisher: Warn: Create Test Case issue link failed. " +
                             "Please check if the issue exists in Jira Cloud.");
                     case 401 -> System.out.println("Zephyr publisher: Warn: Create Test Case issue link failed. " +
                             "Please check Jira Cloud properties in zephyr.properties file.");
                     default -> System.out.println("Zephyr publisher: Warn: Create Test Case issue link failed.");
                 }
-            }
+                return jiraIssue;
+            };
+
+            jiraIssues.add(httpClient.execute(getRequest, responseHandler));
         }
         return jiraIssues;
     }
@@ -67,6 +72,7 @@ public class JiraIssuesClient {
 
     /**
      * Retrieve Jira IDs from Jira issue
+     *
      * @param jiraIssues list of Jira issues
      * @return list of Jira issues IDs
      */

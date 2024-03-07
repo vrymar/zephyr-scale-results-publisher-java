@@ -1,20 +1,21 @@
 package org.vrymar.zephyrClient;
 
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.net.URIBuilder;
 import org.vrymar.model.testExecution.TestExecutions;
 import org.vrymar.utils.PropertiesUtil;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.vrymar.utils.Parser;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Client to work with test executions in Zephyr Scale Cloud
@@ -22,17 +23,23 @@ import java.util.List;
 public class TestExecutionsClient {
 
     private static final String URL_SPLITTER_REGEX = "/";
+    private final CloseableHttpClient httpClient;
+
+    public TestExecutionsClient(CloseableHttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     /**
      * Get test executions from Zephyr Scale Cloud with http request
-     * @param propertiesUtil  properties util tool to get properties
-     * @param testCycleKey  key of the test cycle
-     * @return  test execution
-     * @throws URISyntaxException  URISyntaxException
-     * @throws IOException  IOException
+     *
+     * @param propertiesUtil properties util tool to get properties
+     * @param testCycleKey   key of the test cycle
+     * @return test execution
+     * @throws URISyntaxException URISyntaxException
+     * @throws IOException        IOException
      */
     public TestExecutions getTestExecutions(PropertiesUtil propertiesUtil, String testCycleKey) throws URISyntaxException, IOException {
-        TestExecutions testExecutions = null;
+        AtomicReference<TestExecutions> testExecutions = new AtomicReference<>();
         String uri = propertiesUtil.getBaseUri() + "testexecutions";
         System.out.println("Zephyr publisher: URI to execute: " + uri);
 
@@ -47,21 +54,24 @@ public class TestExecutionsClient {
         HttpGet getRequest = new HttpGet(uriBuilder.build());
         getRequest.setHeader("Authorization", "Bearer " + propertiesUtil.getZephyrToken());
 
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
-             CloseableHttpResponse response = httpClient.execute(getRequest)) {
-            int responseCode = response.getStatusLine().getStatusCode();
+
+        HttpClientResponseHandler<TestExecutions> responseHandler = response -> {
+            int responseCode = response.getCode();
             System.out.println("Zephyr publisher: Get Zephyr Scale latest test execution response status code: " + responseCode);
 
             if (responseCode == 200) {
-                testExecutions = Parser.tryParseResponse(response, TestExecutions.class);
+                testExecutions.set(Parser.tryParseResponse((CloseableHttpResponse) response, TestExecutions.class));
             }
-        }
-        return testExecutions;
+            return testExecutions.get();
+        };
+
+        return httpClient.execute(getRequest, responseHandler);
     }
 
     /**
      * Retrieve scenarios key from test executions
-     * @param testExecutions  test executions object
+     *
+     * @param testExecutions test executions object
      * @return list of scenarios keys
      */
     public List<String> getScenariosKeys(TestExecutions testExecutions) {

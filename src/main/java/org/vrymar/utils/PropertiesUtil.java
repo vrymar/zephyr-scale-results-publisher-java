@@ -26,7 +26,7 @@ public class PropertiesUtil {
     @Getter
     private final String projectKey;
     @Getter
-    private final String autoCreateTestCases;
+    private final boolean autoCreateTestCases;
     @Getter
     private final String resultsFileExtension;
     @Getter
@@ -71,7 +71,7 @@ public class PropertiesUtil {
             zephyrToken = readProperties("zephyrToken");
         }
         projectKey = readProperties("projectKey");
-        autoCreateTestCases = readProperties("autoCreateTestCases");
+        autoCreateTestCases = Boolean.parseBoolean(readProperties("autoCreateTestCases"));
         resultsFileExtension = readProperties("resultsFileExtension");
         resultsFolder = readProperties("resultsFolder");
         customTestCycle = Boolean.parseBoolean(readProperties("customTestCycle"));

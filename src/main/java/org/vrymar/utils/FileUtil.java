@@ -1,5 +1,9 @@
 package org.vrymar.utils;
 
+import org.vrymar.model.testCase.TestCase;
+import org.vrymar.model.testResultCucumber.Element;
+import org.vrymar.model.testResultCucumber.Step;
+import org.vrymar.model.testResultCucumber.Tag;
 import org.vrymar.model.testResultCucumber.TestResult;
 
 import java.io.File;
@@ -24,9 +28,10 @@ public class FileUtil {
 
     /**
      * Find a file by its name
+     *
      * @param fileName name of the file
      * @return found file
-     * @throws IOException  IOException
+     * @throws IOException IOException
      */
     public File findFile(String fileName) throws IOException {
         Path projectPath = getProjectRootPath();
@@ -49,6 +54,7 @@ public class FileUtil {
 
     /**
      * Get project root path
+     *
      * @return path to the root project
      */
     public Path getProjectRootPath() {
@@ -64,21 +70,23 @@ public class FileUtil {
 
     /**
      * Delete any file
-     * @param file  file to delete
-     * @throws IOException  IOException
+     *
+     * @param file file to delete
+     * @throws IOException IOException
      */
     public void deleteExistingFile(File file) throws IOException {
         if (file.exists()) {
-           Files.delete(file.toPath());
+            Files.delete(file.toPath());
         }
     }
 
     /**
      * Creates zipped file
-     * @param resultsFile   file to be zipped
-     * @param filePaths     path to the zipped file
+     *
+     * @param resultsFile file to be zipped
+     * @param filePaths   path to the zipped file
      * @return Created zip file
-     * @throws IOException  IOException
+     * @throws IOException IOException
      */
     public File createZip(File resultsFile, List<String> filePaths) throws IOException {
         try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(resultsFile.getAbsolutePath()))) {
@@ -103,7 +111,8 @@ public class FileUtil {
 
     /**
      * Wait until data appears in file
-     * @param filePath  path to the file
+     *
+     * @param filePath path to the file
      */
     public void waitIsFileNotEmpty(String filePath) {
         int counter = 10;
@@ -124,6 +133,7 @@ public class FileUtil {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void wait(int sec) {
         try {
             TimeUnit.SECONDS.sleep(sec);
@@ -134,10 +144,11 @@ public class FileUtil {
 
     /**
      * Find all files with specific extension. E.g. *.json
-     * @param folderPath path to the root folder to look for the file
+     *
+     * @param folderPath    path to the root folder to look for the file
      * @param fileExtension file extension to look for
      * @return list of found files
-     * @throws IOException  IOException
+     * @throws IOException IOException
      */
     public List<String> findAllFilesWithExtension(Path folderPath, String fileExtension) throws IOException {
         if (!Files.isDirectory(folderPath)) {
@@ -159,35 +170,103 @@ public class FileUtil {
 
     /**
      * Get scenario name and tags from results file.
-     * @param propertiesUtil  properties util tool to get properties
-     * @param tagPrefix  tag prefix
+     *
+     * @param propertiesUtil properties util tool to get properties
+     * @param tagPrefix      tag prefix
      * @return map of names and tags
-     * @throws IOException  IOException
+     * @throws IOException IOException
      */
     public Map<String, List<String>> getTestScenarioNameAndTagsFromResultsFile(PropertiesUtil propertiesUtil, String tagPrefix) throws IOException {
+        TestResult[] testResult = getTestResults(propertiesUtil);
+        Map<String, List<String>> testScenarioNameTags = new HashMap<>();
+
+        Arrays.stream(testResult).forEach(result ->
+                result.getElements().forEach(element -> {
+                    List<Tag> tags = element.getTags();
+                    if (tags != null && !tags.isEmpty()) {
+                        List<String> newTagsList = new ArrayList<>();
+                        tags.forEach(tag -> {
+                            String tagName = tag.getName();
+                            if (tagName.contains(tagPrefix + TAG_NAME_SPLITTER)) {
+                                String[] tagArray = tagName.split(TAG_NAME_SPLITTER);
+                                newTagsList.add(tagArray[tagArray.length - 1]);
+                            }
+                        });
+                        testScenarioNameTags.put(result.getName() + ": " + element.getName(), newTagsList);
+                    }
+                }));
+
+        return testScenarioNameTags;
+    }
+
+    /**
+     * Get test scenario key and steps from results file
+     *
+     * @param propertiesUtil properties util tool to get properties
+     * @param testCase       test case to get key and steps
+     * @return map of key and steps
+     * @throws IOException IOException
+     */
+    public Map<String, String> getScenarioKeyAndStepsFromResultsFile(PropertiesUtil propertiesUtil, TestCase testCase) throws IOException {
+        TestResult[] testResults = getTestResults(propertiesUtil);
+        StringBuilder testScriptWithBackgroundSteps = getTestScriptWithBackgroundSteps(testResults);
+        Map<String, String> testScenarioKeySteps = new HashMap<>();
+
+        for (TestResult feature : testResults) {
+            Map<String, List<Element>> idsAndScenarios = getIdsAndScenariosFromResultsFile(feature);
+
+            for (Map.Entry<String, List<Element>> entry : idsAndScenarios.entrySet()) {
+                StringBuilder testScriptWithSteps = new StringBuilder();
+                for (Element scenario : entry.getValue()) {
+                    String scenarioName = feature.getName() + ": " + scenario.getName();
+
+                    if (scenarioName.equals(testCase.getName())) {
+                        testScriptWithSteps.append(testScriptWithBackgroundSteps);
+                        for (Step step : scenario.getSteps()) {
+                            testScriptWithSteps.append(step.getKeyword()).append(" ").append(step.getName()).append("\\n");
+                        }
+                        testScenarioKeySteps.put(testCase.getKey(), testScriptWithSteps.toString());
+                    }
+                    testScriptWithSteps.append("\\n");
+                }
+            }
+        }
+        return testScenarioKeySteps;
+    }
+
+    private Map<String, List<Element>> getIdsAndScenariosFromResultsFile(TestResult feature) {
+        Map<String, List<Element>> scenarioIdAndContent = new HashMap<>();
+
+        feature.getElements().forEach(scenario -> {
+            String id = scenario.getId();
+            if (id != null) {
+                scenarioIdAndContent.computeIfAbsent(id, k -> new ArrayList<>()).add(scenario);
+            }
+        });
+        return scenarioIdAndContent;
+    }
+
+    private StringBuilder getTestScriptWithBackgroundSteps(TestResult[] testResults) {
+        StringBuilder testScriptWithBackgroundSteps = new StringBuilder();
+        Arrays.stream(testResults).forEach(feature ->
+                feature.getElements().forEach(element -> {
+                    if (element.getKeyword().equals("Background") && testScriptWithBackgroundSteps.isEmpty()) {
+                        element.getSteps().forEach(step -> testScriptWithBackgroundSteps
+                                .append(step.getKeyword())
+                                .append(" ")
+                                .append(step.getName())
+                                .append("\\n"));
+                    }
+                }));
+        return testScriptWithBackgroundSteps;
+    }
+
+    private TestResult[] getTestResults(PropertiesUtil propertiesUtil) throws IOException {
         Parser parser = new Parser();
         String resultsFolderName = propertiesUtil.getResultsFolder();
         File resultsFolder = findFile(resultsFolderName);
         List<String> filePaths = findAllFilesWithExtension(resultsFolder.toPath(), propertiesUtil.getResultsFileExtension());
         System.out.println("Zephyr publisher: File path to deserialize: " + filePaths.get(0));
-        TestResult[] testResult = parser.parseCucumberTestResultFile(new File(filePaths.get(0)));
-        Map<String, List<String>> testScenarioNameTags = new HashMap<>();
-
-        Arrays.stream(testResult).forEach(result ->
-                result.getElements().forEach(element -> {
-                    if (element.getTags() != null && !element.getTags().isEmpty()) {
-                        List<String> tags = new ArrayList<>();
-                        element.getTags().forEach(tag -> {
-                            String tagName = tag.getName();
-                            if (tagName.contains(tagPrefix + TAG_NAME_SPLITTER)) {
-                                String[] tagArray = tag.getName().split(TAG_NAME_SPLITTER);
-                                tags.add(tagArray[tagArray.length - 1]);
-                            }
-                        });
-                        testScenarioNameTags.put(result.getName() + ": " + element.getName(), tags);
-                    }
-                }));
-
-        return testScenarioNameTags;
+        return parser.parseCucumberTestResultFile(new File(filePaths.get(0)));
     }
 }

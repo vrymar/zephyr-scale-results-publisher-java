@@ -5,18 +5,37 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
- * Tags model object
+ * Elements model object
  */
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Tags {
-
+public class Element {
     @JsonProperty("name")
     private String name;
+
+    @JsonProperty("description")
+    private String description;
+
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("type")
+    private String type;
+
+    @JsonProperty("keyword")
+    private String keyword;
+
+    @JsonProperty("tags")
+    private List<Tag> tags;
+
+    @JsonProperty("steps")
+    private List<Step> steps;
+
 
     @Override
     public boolean equals(Object o){
@@ -28,12 +47,12 @@ public class Tags {
             return false;
         }
 
-        final Tags other = (Tags) o;
+        final Element other = (Element) o;
         if(!Objects.equals(this.name, other.name)){
             return false;
         }
 
-        return this.name.equals(other.name);
+        return this.tags.equals(other.tags);
     }
 
     @Override
@@ -42,5 +61,4 @@ public class Tags {
         hash = 53 * hash + (this.name != null ? this.name.hashCode() : 0);
         return hash;
     }
-
 }
