@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - '.github/**'
 
 env:
   VERSION_FILE: gradle.properties
