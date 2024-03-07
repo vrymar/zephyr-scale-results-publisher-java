@@ -13,7 +13,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Tags {
+public class Tag {
 
     @JsonProperty("name")
     private String name;
@@ -28,7 +28,7 @@ public class Tags {
             return false;
         }
 
-        final Tags other = (Tags) o;
+        final Tag other = (Tag) o;
         if(!Objects.equals(this.name, other.name)){
             return false;
         }

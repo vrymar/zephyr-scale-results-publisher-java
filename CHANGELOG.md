@@ -1,7 +1,8 @@
 # Changelog
 
 ## [Unreleased]
-
+### Added
+- Unit tests
 
 ## [2.0.2]
 ### Added

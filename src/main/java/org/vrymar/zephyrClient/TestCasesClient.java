@@ -62,7 +62,7 @@ public class TestCasesClient {
 
         HttpClientResponseHandler<TestCase> responseHandler = response -> {
             int responseCode = response.getCode();
-            System.out.println("Zephyr publisher: Get Test Case response status code: " + responseCode);
+            System.out.println("Zephyr publisher: Get Test Case " + testCaseKey + " response status code: " + responseCode);
 
             if (responseCode == 200) {
                 testCase.set(Parser.tryParseResponse((CloseableHttpResponse) response, TestCase.class));
@@ -115,11 +115,10 @@ public class TestCasesClient {
      * @param testCaseKey         test case key value
      * @param type                type of test script
      * @param testScriptWithSteps test script with steps
-     * @return response code
      * @throws URISyntaxException URISyntaxException
      * @throws IOException        IOException
      */
-    public Integer createTestScriptWithSteps(PropertiesUtil propertiesUtil, String testCaseKey, String type, String testScriptWithSteps) throws URISyntaxException, IOException {
+    public void createTestScriptWithSteps(PropertiesUtil propertiesUtil, String testCaseKey, String type, String testScriptWithSteps) throws URISyntaxException, IOException {
         String uri = propertiesUtil.getBaseUri() + URI_PATH_TESTCASES + testCaseKey + "/testscript";
         StringEntity jsonBody = new StringEntity(buildTestScriptWithStepsBody(type, testScriptWithSteps), ContentType.APPLICATION_JSON);
         HttpPost postRequest = new HttpPost(uri);
@@ -130,13 +129,10 @@ public class TestCasesClient {
         HttpClientResponseHandler<Integer> responseHandler = response -> {
             int responseCode = response.getCode();
             System.out.println("Zephyr publisher: Create test script with steps in Test Case " + testCaseKey + " response status code: " + responseCode);
-            if (responseCode == 200 || responseCode == 201) {
-                System.out.println("Zephyr publisher: Create test script with steps in Test Case " + testCaseKey + " is done successfully.");
-            }
             return responseCode;
         };
 
-        return httpClient.execute(postRequest, responseHandler);
+        httpClient.execute(postRequest, responseHandler);
     }
 
     private String buildTestScriptWithStepsBody(String type, String textSteps) {

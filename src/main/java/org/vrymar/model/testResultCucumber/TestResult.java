@@ -16,7 +16,7 @@ import java.util.Objects;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TestResult {
     @JsonProperty("elements")
-    private List<Elements> elements;
+    private List<Element> elements;
 
     @JsonProperty("name")
     private String name;

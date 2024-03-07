@@ -14,15 +14,27 @@ import java.util.Objects;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Elements {
+public class Element {
     @JsonProperty("name")
     private String name;
 
+    @JsonProperty("description")
+    private String description;
+
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("type")
+    private String type;
+
+    @JsonProperty("keyword")
+    private String keyword;
+
     @JsonProperty("tags")
-    private List<Tags> tags;
+    private List<Tag> tags;
 
     @JsonProperty("steps")
-    private List<Steps> steps;
+    private List<Step> steps;
 
 
     @Override
@@ -35,7 +47,7 @@ public class Elements {
             return false;
         }
 
-        final Elements other = (Elements) o;
+        final Element other = (Element) o;
         if(!Objects.equals(this.name, other.name)){
             return false;
         }

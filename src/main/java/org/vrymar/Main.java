@@ -96,11 +96,10 @@ public class Main {
                 Map<String, String> testScriptWithSteps;
 
                 try {
-                    testScriptWithSteps = fileUtil.getTestScenarioKeyAndStepsFromResultsFile(propertiesUtil, testCase);
+                    testScriptWithSteps = fileUtil.getScenarioKeyAndStepsFromResultsFile(propertiesUtil, testCase);
                     testScriptWithSteps.forEach((key, value) -> {
                         try {
-                            Integer responseCode = testCasesClient.createTestScriptWithSteps(propertiesUtil, key, "bdd", value);
-                            System.out.println("Zephyr publisher: Create test script with steps in Test Case " + key + " response status code: " + responseCode);
+                            testCasesClient.createTestScriptWithSteps(propertiesUtil, key, "bdd", value);
                         } catch (URISyntaxException | IOException e) {
                             System.out.println("Zephyr publisher: Error: Failed to update test case with script with steps. Error: " + e.getMessage());
                             throw new RuntimeException(e);

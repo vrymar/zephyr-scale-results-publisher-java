@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Steps {
+public class Step {
     
     @JsonProperty("result")
     private Result result;

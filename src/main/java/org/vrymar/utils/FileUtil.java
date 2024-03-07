@@ -1,6 +1,9 @@
 package org.vrymar.utils;
 
 import org.vrymar.model.testCase.TestCase;
+import org.vrymar.model.testResultCucumber.Element;
+import org.vrymar.model.testResultCucumber.Step;
+import org.vrymar.model.testResultCucumber.Tag;
 import org.vrymar.model.testResultCucumber.TestResult;
 
 import java.io.File;
@@ -179,16 +182,17 @@ public class FileUtil {
 
         Arrays.stream(testResult).forEach(result ->
                 result.getElements().forEach(element -> {
-                    if (element.getTags() != null && !element.getTags().isEmpty()) {
-                        List<String> tags = new ArrayList<>();
-                        element.getTags().forEach(tag -> {
+                    List<Tag> tags = element.getTags();
+                    if (tags != null && !tags.isEmpty()) {
+                        List<String> newTagsList = new ArrayList<>();
+                        tags.forEach(tag -> {
                             String tagName = tag.getName();
                             if (tagName.contains(tagPrefix + TAG_NAME_SPLITTER)) {
-                                String[] tagArray = tag.getName().split(TAG_NAME_SPLITTER);
-                                tags.add(tagArray[tagArray.length - 1]);
+                                String[] tagArray = tagName.split(TAG_NAME_SPLITTER);
+                                newTagsList.add(tagArray[tagArray.length - 1]);
                             }
                         });
-                        testScenarioNameTags.put(result.getName() + ": " + element.getName(), tags);
+                        testScenarioNameTags.put(result.getName() + ": " + element.getName(), newTagsList);
                     }
                 }));
 
@@ -203,32 +207,58 @@ public class FileUtil {
      * @return map of key and steps
      * @throws IOException IOException
      */
-    public Map<String, String> getTestScenarioKeyAndStepsFromResultsFile(PropertiesUtil propertiesUtil, TestCase testCase) throws IOException {
+    public Map<String, String> getScenarioKeyAndStepsFromResultsFile(PropertiesUtil propertiesUtil, TestCase testCase) throws IOException {
         TestResult[] testResults = getTestResults(propertiesUtil);
-        Map<String, String> testScenarioNameSteps = new HashMap<>();
+        StringBuilder testScriptWithBackgroundSteps = getTestScriptWithBackgroundSteps(testResults);
+        Map<String, String> testScenarioKeySteps = new HashMap<>();
 
-        Arrays.stream(testResults).forEach(result ->
-                result.getElements().forEach(element -> {
+        for (TestResult feature : testResults) {
+            Map<String, List<Element>> idsAndScenarios = getIdsAndScenariosFromResultsFile(feature);
 
-                    element.getSteps().forEach(step -> {
-                        if (step.getKeyword().equals("Background")) {
-                            step.setName("Given " + step.getName());
-                        }
-                    });
-
-                    String scenarioName = result.getName() + ": " + element.getName();
+            for (Map.Entry<String, List<Element>> entry : idsAndScenarios.entrySet()) {
+                StringBuilder testScriptWithSteps = new StringBuilder();
+                for (Element scenario : entry.getValue()) {
+                    String scenarioName = feature.getName() + ": " + scenario.getName();
 
                     if (scenarioName.equals(testCase.getName())) {
-                        StringBuilder testScriptWithSteps = new StringBuilder();
-                        element.getSteps().forEach(step -> testScriptWithSteps
+                        testScriptWithSteps.append(testScriptWithBackgroundSteps);
+                        for (Step step : scenario.getSteps()) {
+                            testScriptWithSteps.append(step.getKeyword()).append(" ").append(step.getName()).append("\\n");
+                        }
+                        testScenarioKeySteps.put(testCase.getKey(), testScriptWithSteps.toString());
+                    }
+                    testScriptWithSteps.append("\\n");
+                }
+            }
+        }
+        return testScenarioKeySteps;
+    }
+
+    private Map<String, List<Element>> getIdsAndScenariosFromResultsFile(TestResult feature) {
+        Map<String, List<Element>> scenarioIdAndContent = new HashMap<>();
+
+        feature.getElements().forEach(scenario -> {
+            String id = scenario.getId();
+            if (id != null) {
+                scenarioIdAndContent.computeIfAbsent(id, k -> new ArrayList<>()).add(scenario);
+            }
+        });
+        return scenarioIdAndContent;
+    }
+
+    private StringBuilder getTestScriptWithBackgroundSteps(TestResult[] testResults) {
+        StringBuilder testScriptWithBackgroundSteps = new StringBuilder();
+        Arrays.stream(testResults).forEach(feature ->
+                feature.getElements().forEach(element -> {
+                    if (element.getKeyword().equals("Background") && testScriptWithBackgroundSteps.isEmpty()) {
+                        element.getSteps().forEach(step -> testScriptWithBackgroundSteps
                                 .append(step.getKeyword())
                                 .append(" ")
                                 .append(step.getName())
                                 .append("\\n"));
-                        testScenarioNameSteps.put(testCase.getKey(), testScriptWithSteps.toString());
                     }
                 }));
-        return testScenarioNameSteps;
+        return testScriptWithBackgroundSteps;
     }
 
     private TestResult[] getTestResults(PropertiesUtil propertiesUtil) throws IOException {
