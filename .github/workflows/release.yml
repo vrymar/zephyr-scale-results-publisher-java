@@ -13,8 +13,6 @@ env:
   VERSION_FILE: gradle.properties
   VERSION_EXTRACT_PATTERN: '(?<=version=).+'
   CHANGE_LOG_FILE: CHANGELOG.md
-  CHANGE_LOG_TMP_FILE: CHANGELOG_updated.md
-  REPOSITORY_URL: 'https://maven.pkg.github.com/'
 
 jobs:
   release:
