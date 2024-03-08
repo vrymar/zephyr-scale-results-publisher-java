@@ -72,8 +72,8 @@ jobs:
         id: createRelease
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ env.RELEASE_VERSION }}
-          name: Release ${{ env.RELEASE_VERSION }}
+          tag: v${{ env.RELEASE_VERSION }}
+          name: ${{ env.RELEASE_VERSION }}
           body: ${{ steps.readChangelogEntry.outputs.changes }}
 
       # - name: Checkout main branch
