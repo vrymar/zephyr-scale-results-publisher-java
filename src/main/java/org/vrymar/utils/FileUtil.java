@@ -217,13 +217,25 @@ public class FileUtil {
 
             for (Map.Entry<String, List<Element>> entry : idsAndScenarios.entrySet()) {
                 StringBuilder testScriptWithSteps = new StringBuilder();
+                int examplesCounter = 1;
+
                 for (Element scenario : entry.getValue()) {
                     String scenarioName = feature.getName() + ": " + scenario.getName();
 
                     if (scenarioName.equals(testCase.getName())) {
+
+                        if(scenario.getKeyword().equalsIgnoreCase("Scenario Outline")){
+                            testScriptWithSteps.append("|EXAMPLE ").append(examplesCounter).append("|").append("\\n");
+                            examplesCounter++;
+                        }
                         testScriptWithSteps.append(testScriptWithBackgroundSteps);
+
                         for (Step step : scenario.getSteps()) {
-                            testScriptWithSteps.append(step.getKeyword()).append(" ").append(step.getName()).append("\\n");
+                            testScriptWithSteps
+                                    .append(step.getKeyword())
+                                    .append(" ")
+                                    .append(step.getName())
+                                    .append("\\n");
                         }
                         testScenarioKeySteps.put(testCase.getKey(), testScriptWithSteps.toString());
                     }
