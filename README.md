@@ -71,7 +71,7 @@ test.finalizedBy(runScheduleReader)
     <dependency>
         <groupId>com.github.vrymar</groupId>
         <artifactId>zephyr-scale-results-publisher-java</artifactId>
-        <version>2.0.1</version>
+        <version>2.0.3</version>
     </dependency>
     ```
 
