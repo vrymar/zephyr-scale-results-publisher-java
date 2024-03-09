@@ -4,7 +4,7 @@
 ### Added
 - Unit tests
 
-## [2.0.3]
+## [2.0.4]
 ### Added
 - Publish test script with steps into each test case
 
