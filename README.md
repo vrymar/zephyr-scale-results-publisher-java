@@ -28,7 +28,7 @@ repositories {
 2. Add dependency with the relevant version to build.gradle:
 ```groovy
 dependencies {
-	        implementation 'com.github.vrymar:zephyr-scale-results-publisher-java:2.0.1'
+	        implementation 'com.github.vrymar:zephyr-scale-results-publisher-java:2.0.4'
 	}
 ```
 
