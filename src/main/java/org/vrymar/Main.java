@@ -99,6 +99,7 @@ public class Main {
                     testScriptWithSteps = fileUtil.getScenarioKeyAndStepsFromResultsFile(propertiesUtil, testCase);
                     testScriptWithSteps.forEach((key, value) -> {
                         try {
+                            value = value.replaceAll("\"", "\\\\\"");
                             testCasesClient.createTestScriptWithSteps(propertiesUtil, key, "bdd", value);
                         } catch (URISyntaxException | IOException e) {
                             System.out.println("Zephyr publisher: Error: Failed to update test case with script with steps. Error: " + e.getMessage());
