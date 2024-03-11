@@ -91,67 +91,70 @@ public class Main {
                 }
             });
 
-            // Update Test Cases with script with steps
-            testCases.forEach(testCase -> {
-                Map<String, String> testScriptWithSteps;
+            // Execute only for cucumber json report
+            if (propertiesUtil.getUriSuffix().contains("cucumber")) {
+                // Update Test Cases with script with steps
+                testCases.forEach(testCase -> {
+                    Map<String, String> testScriptWithSteps;
 
-                try {
-                    testScriptWithSteps = fileUtil.getScenarioKeyAndStepsFromResultsFile(propertiesUtil, testCase);
-                    testScriptWithSteps.forEach((key, value) -> {
-                        try {
-                            value = value.replaceAll("\"", "\\\\\"");
-                            testCasesClient.createTestScriptWithSteps(propertiesUtil, key, "bdd", value);
-                        } catch (URISyntaxException | IOException e) {
-                            System.out.println("Zephyr publisher: Error: Failed to update test case with script with steps. Error: " + e.getMessage());
-                            throw new RuntimeException(e);
-                        }
-                    });
-                } catch (IOException e) {
-                    System.out.println("Zephyr publisher: Error: Failed to update test case with script with steps. Error: " + e.getMessage());
-                    throw new RuntimeException(e);
-                }
-            });
-
-            // Update Test Cases with Labels
-            if (isUpdateTestCasesWithLabels) {
-                Map<String, List<String>> scenarioNameTagsLabels = fileUtil.getTestScenarioNameAndTagsFromResultsFile(propertiesUtil, "@ZephyrLabel");
-                if (!scenarioNameTagsLabels.isEmpty()) {
-                    scenarioNameTagsLabels.forEach((name, tagsLabels) -> testCases.forEach(testCase -> {
-                        if (name.equals(testCase.getName())) {
-                            TestCase newTestCase = testCasesClient.buildTestCaseBodyWithLabels(testCase, tagsLabels);
+                    try {
+                        testScriptWithSteps = fileUtil.getScenarioKeyAndStepsFromResultsFile(propertiesUtil, testCase);
+                        testScriptWithSteps.forEach((key, value) -> {
                             try {
-                                testCasesClient.updateTestCase(propertiesUtil, testCase.getKey(), newTestCase);
+                                value = value.replaceAll("\"", "\\\\\"");
+                                testCasesClient.createTestScriptWithSteps(propertiesUtil, key, "bdd", value);
                             } catch (URISyntaxException | IOException e) {
+                                System.out.println("Zephyr publisher: Error: Failed to update test case with script with steps. Error: " + e.getMessage());
                                 throw new RuntimeException(e);
                             }
-                        }
-                    }));
-                } else {
-                    System.out.println("Zephyr publisher: No tags found to add to Zephyr Scale test cases labels.");
-                }
-            }
+                        });
+                    } catch (IOException e) {
+                        System.out.println("Zephyr publisher: Error: Failed to update test case with script with steps. Error: " + e.getMessage());
+                        throw new RuntimeException(e);
+                    }
+                });
 
-            // Update Test Cases with Issues/Stories
-            if (isUpdateTestCasesWithStories) {
-                Map<String, List<String>> testScenarioNameTagsIssues = fileUtil.getTestScenarioNameAndTagsFromResultsFile(propertiesUtil, "@ZephyrIssue");
-                if (!testScenarioNameTagsIssues.isEmpty()) {
-                    testScenarioNameTagsIssues.forEach((name, tagsIssues) -> testCases.forEach(testCase -> {
-                        if (name.equals(testCase.getName())) {
-                            List<JiraIssue> jiraIssues;
-                            try {
-                                jiraIssues = jiraIssuesClient.getJiraIssue(propertiesUtil, tagsIssues);
-                                List<Integer> issuesIds = jiraIssuesClient.getIssuesIds(jiraIssues);
-                                testCasesClient.createIssueLink(propertiesUtil, testCase.getKey(), issuesIds);
-                            } catch (URISyntaxException | IOException e) {
-                                throw new RuntimeException(e);
+                // Update Test Cases with Labels
+                if (isUpdateTestCasesWithLabels) {
+                    Map<String, List<String>> scenarioNameTagsLabels = fileUtil.getTestScenarioNameAndTagsFromResultsFile(propertiesUtil, "@ZephyrLabel");
+                    if (!scenarioNameTagsLabels.isEmpty()) {
+                        scenarioNameTagsLabels.forEach((name, tagsLabels) -> testCases.forEach(testCase -> {
+                            if (name.equals(testCase.getName())) {
+                                TestCase newTestCase = testCasesClient.buildTestCaseBodyWithLabels(testCase, tagsLabels);
+                                try {
+                                    testCasesClient.updateTestCase(propertiesUtil, testCase.getKey(), newTestCase);
+                                } catch (URISyntaxException | IOException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
-                        }
-                    }));
-                } else {
-                    System.out.println("Zephyr publisher: No tags found to add to Zephyr Scale test cases issues/stories.");
+                        }));
+                    } else {
+                        System.out.println("Zephyr publisher: No tags found to add to Zephyr Scale test cases labels.");
+                    }
                 }
+
+                // Update Test Cases with Issues/Stories
+                if (isUpdateTestCasesWithStories) {
+                    Map<String, List<String>> testScenarioNameTagsIssues = fileUtil.getTestScenarioNameAndTagsFromResultsFile(propertiesUtil, "@ZephyrIssue");
+                    if (!testScenarioNameTagsIssues.isEmpty()) {
+                        testScenarioNameTagsIssues.forEach((name, tagsIssues) -> testCases.forEach(testCase -> {
+                            if (name.equals(testCase.getName())) {
+                                List<JiraIssue> jiraIssues;
+                                try {
+                                    jiraIssues = jiraIssuesClient.getJiraIssue(propertiesUtil, tagsIssues);
+                                    List<Integer> issuesIds = jiraIssuesClient.getIssuesIds(jiraIssues);
+                                    testCasesClient.createIssueLink(propertiesUtil, testCase.getKey(), issuesIds);
+                                } catch (URISyntaxException | IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        }));
+                    } else {
+                        System.out.println("Zephyr publisher: No tags found to add to Zephyr Scale test cases issues/stories.");
+                    }
+                }
+                System.out.println("Zephyr publisher: Test Cycle Location: " + testCycleResponse.getTestCycle().getUrl());
             }
-            System.out.println("Zephyr publisher: Test Cycle Location: " + testCycleResponse.getTestCycle().getUrl());
 
         } catch (IOException | URISyntaxException | NullPointerException e) {
             System.out.println("Zephyr publisher error: Failed to publish report to Zephyr Scale. Error: " + e.getMessage());
