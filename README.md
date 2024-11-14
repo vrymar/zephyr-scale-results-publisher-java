@@ -1,3 +1,6 @@
+> [!WARNING]  
+> This repository/project/tool will not be available soon! Please replace it within your projects!
+
 # Zephyr Scale API - Automation Results Publisher
 The tool provides an opportunity to update test cases status and publish automation test results into Zephyr Scale Cloud.  
 Detailed Automation API requests and properties can be found here: [Zephyr Scale API](https://support.smartbear.com/zephyr-scale-cloud/api-docs/#tag/Automations)  
